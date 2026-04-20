@@ -1,3 +1,15 @@
+// Add this at the top of server.js
+require('dotenv').config();
+
+// Change MongoDB connection to:
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/bloodconnect', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+// Change port to:
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
