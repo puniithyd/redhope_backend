@@ -5,7 +5,13 @@ const dotenv = require('dotenv');
 dotenv.config();
 const app = express();
 
-app.use(cors());
+// ✅ CORS MUST BE AT THE TOP - BEFORE ANY ROUTES
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Root endpoint
@@ -37,7 +43,6 @@ app.get('/api/donors', (req, res) => {
   try {
     const { bloodGroup, city } = req.query;
     
-    // Sample donor data (replace with database later)
     let donors = [
       {
         id: 1,
@@ -71,7 +76,6 @@ app.get('/api/donors', (req, res) => {
       }
     ];
     
-    // Apply filters
     if (bloodGroup) {
       donors = donors.filter(d => d.bloodGroup === bloodGroup);
     }
@@ -97,7 +101,6 @@ app.post('/api/donors', (req, res) => {
   try {
     const donorData = req.body;
     
-    // Validate required fields
     const requiredFields = ['name', 'email', 'phone', 'bloodGroup', 'age', 'city'];
     for (const field of requiredFields) {
       if (!donorData[field]) {
@@ -108,7 +111,6 @@ app.post('/api/donors', (req, res) => {
       }
     }
     
-    // Create new donor (add to database in production)
     const newDonor = {
       id: Date.now(),
       ...donorData,
@@ -136,7 +138,6 @@ app.get('/api/requests', (req, res) => {
   try {
     const { city, urgency } = req.query;
     
-    // Sample request data
     let requests = [
       {
         id: 1,
@@ -166,7 +167,6 @@ app.get('/api/requests', (req, res) => {
       }
     ];
     
-    // Apply filters
     if (city) {
       requests = requests.filter(r => r.city.toLowerCase() === city.toLowerCase());
     }
@@ -192,7 +192,6 @@ app.post('/api/requests', (req, res) => {
   try {
     const requestData = req.body;
     
-    // Validate required fields
     const requiredFields = ['patientName', 'bloodGroup', 'quantity', 'hospital', 'city', 'contactPerson', 'contactPhone'];
     for (const field of requiredFields) {
       if (!requestData[field]) {
@@ -203,7 +202,6 @@ app.post('/api/requests', (req, res) => {
       }
     }
     
-    // Create new request
     const newRequest = {
       id: Date.now(),
       ...requestData,
@@ -224,7 +222,7 @@ app.post('/api/requests', (req, res) => {
   }
 });
 
-// 404 handler for undefined routes
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ 
     success: false,
@@ -245,5 +243,4 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 API URL: https://redhope-backend-3.onrender.com`);
 });
