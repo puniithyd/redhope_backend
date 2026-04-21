@@ -25,8 +25,9 @@ mongoose.connect(MONGODB_URI, {
 });
 
 // Import Routes
-const donorRoutes = require('./routes/donors');
-const requestRoutes = require('./routes/requests');
+const donorRoutes = require('./donors');
+const requestRoutes = require('./requests');
+
 
 // Use Routes
 app.use('/api/donors', donorRoutes);
