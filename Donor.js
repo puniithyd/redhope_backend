@@ -1,46 +1,51 @@
-const express = require('express');
-const router = express.Router();
-const Donor = require('../models/Donor');
+const mongoose = require('mongoose');
 
-// Register donor
-router.post('/', async (req, res) => {
-  try {
-    const donor = new Donor(req.body);
-    await donor.save();
-    res.status(201).json({ 
-      success: true, 
-      message: 'Donor registered successfully!',
-      donor 
-    });
-  } catch (error) {
-    res.status(400).json({ 
-      success: false, 
-      error: error.message 
-    });
+const donorSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true
+  },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    lowercase: true,
+    trim: true
+  },
+  phone: {
+    type: String,
+    required: [true, 'Phone number is required'],
+    trim: true
+  },
+  bloodGroup: {
+    type: String,
+    required: [true, 'Blood group is required'],
+    enum: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
+  },
+  age: {
+    type: Number,
+    required: [true, 'Age is required'],
+    min: 18,
+    max: 65
+  },
+  city: {
+    type: String,
+    required: [true, 'City is required'],
+    trim: true
+  },
+  lastDonationDate: {
+    type: Date,
+    default: null
+  },
+  isAvailable: {
+    type: Boolean,
+    default: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
 });
 
-// Get donors with filters
-router.get('/', async (req, res) => {
-  try {
-    const { bloodGroup, city } = req.query;
-    let filter = { isAvailable: true };
-    
-    if (bloodGroup) filter.bloodGroup = bloodGroup;
-    if (city) filter.city = { $regex: city, $options: 'i' };
-    
-    const donors = await Donor.find(filter).sort({ createdAt: -1 });
-    res.status(200).json({
-      success: true,
-      count: donors.length,
-      donors
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-module.exports = router;
+module.exports = mongoose.model('Donor', donorSchema);
