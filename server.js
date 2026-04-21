@@ -1,61 +1,73 @@
-/ Add this at the top of server.js
-require('dotenv').config();
-
-// Change MongoDB connection to:
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/bloodconnect', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
-// Change port to:
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected 🚀"))
-  .catch(err => console.log(err));
-
-// Donor Schema
-const donorSchema = new mongoose.Schema({
-  name: String,
-  bloodGroup: String,
-  city: String,
-  phone: String,
-  lastDonated: Date,
-  isAvailable: { type: Boolean, default: true },
-  createdAt: { type: Date, default: Date.now },
+// MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/redhope';
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('✅ MongoDB Connected Successfully'))
+.catch(err => {
+  console.error('❌ MongoDB Connection Error:', err);
+  process.exit(1);
 });
 
-const Donor = mongoose.model('Donor', donorSchema);
+// Import Routes
+const donorRoutes = require('./routes/donors');
+const requestRoutes = require('./routes/requests');
 
-// API Routes
-app.post('/api/donors', async (req, res) => {
-  try {
-    const donor = new Donor(req.body);
-    await donor.save();
-    res.status(201).json(donor);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
+// Use Routes
+app.use('/api/donors', donorRoutes);
+app.use('/api/requests', requestRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Server is running' });
 });
 
-app.get('/api/donors', async (req, res) => {
-  const { bloodGroup, city } = req.query;
-  let query = { isAvailable: true };
-  if (bloodGroup) query.bloodGroup = bloodGroup;
-  if (city) query.city = city;
-  
-  const donors = await Donor.find(query).limit(50);
-  res.json(donors);
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'RedHope Blood Connect API',
+    version: '1.0.0',
+    endpoints: {
+      donors: '/api/donors',
+      requests: '/api/requests'
+    }
+  });
 });
 
-app.listen(5000, () => console.log('Server running on port 5000'));
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    success: false,
+    error: 'Something went wrong!' 
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    success: false,
+    error: 'Route not found' 
+  });
+});
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
