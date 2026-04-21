@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const BloodRequest = require('../models/BloodRequest');
+const BloodRequest = require('./blood_requests');  // Or whatever your model file is named
 
 // Create blood request
 router.post('/', async (req, res) => {
@@ -41,6 +41,27 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Update request status
+router.put('/:id', async (req, res) => {
+  try {
+    const request = await BloodRequest.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
+    res.status(200).json({
+      success: true,
+      message: 'Request updated successfully!',
+      request
+    });
+  } catch (error) {
+    res.status(400).json({
       success: false,
       error: error.message
     });
