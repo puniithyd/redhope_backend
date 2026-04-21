@@ -16,27 +16,26 @@ app.use(express.json());
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/redhope';
 
 mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ MongoDB Connected Successfully'))
+  .then(() => console.log('MongoDB Connected Successfully'))
   .catch(err => {
-    console.error('❌ MongoDB Connection Error:', err);
-    // Don't exit the process, just log the error
+    console.error('MongoDB Connection Error:', err);
   });
 
 // Import Routes
 let donorRoutes, requestRoutes;
 try {
   donorRoutes = require('./donors');
-  console.log('✅ donors.js loaded');
+  console.log('donors.js loaded');
 } catch (err) {
-  console.error('❌ Failed to load donors.js:', err.message);
+  console.error('Failed to load donors.js:', err.message);
   donorRoutes = (req, res) => res.status(500).json({ error: 'Donors route not available' });
 }
 
 try {
   requestRoutes = require('./requests');
-  console.log('✅ requests.js loaded');
+  console.log('requests.js loaded');
 } catch (err) {
-  console.error('❌ Failed to load requests.js:', err.message);
+  console.error('Failed to load requests.js:', err.message);
   requestRoutes = (req, res) => res.status(500).json({ error: 'Requests route not available' });
 }
 
@@ -69,7 +68,7 @@ app.get('/test-db', (req, res) => {
   const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
   res.json({
     dbStatus: states[state] || 'unknown',
-    mongodbUri: process.env.MONGODB_URI ? '✓ Configured' : '✗ Not configured'
+    mongodbUri: process.env.MONGODB_URI ? 'Configured' : 'Not configured'
   });
 });
 
@@ -86,13 +85,13 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({ 
     success: false,
-    error: `Route ${req.method} ${req.url} not found` 
+    error: 'Route ' + req.method + ' ' + req.url + ' not found' 
   });
 });
 
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Health check: http://localhost:${PORT}/health`);
+  console.log('Server running on port ' + PORT);
+  console.log('Health check: http://localhost:' + PORT + '/health');
 });
